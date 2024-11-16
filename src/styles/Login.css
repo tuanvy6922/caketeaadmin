@@ -1,0 +1,11 @@
+@media (max-width: 768px) {
+  .container {
+    background-size: contain;
+  }
+}
+
+@media (min-width: 1200px) {
+  .container {
+    background-size: 80vw auto;
+  }
+} 
