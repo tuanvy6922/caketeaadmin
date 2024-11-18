@@ -17,34 +17,31 @@ const DashboardCharts = ({ chartData, topProducts, categoryStats }) => {
     <div style={styles.chartCard}>
       <h3 style={styles.chartTitle}>Top 3 Sản phẩm bán chạy</h3>
       <ResponsiveContainer width="100%" height={300}>
-        <PieChart>
-          <Pie
-            data={topProductsWithColors}
-            cx="50%"
-            cy="50%"
-            labelLine={false}
-            label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-            outerRadius={80}
-            fill="#8884d8"
-            dataKey="value"
-          >
+        <BarChart
+          data={topProductsWithColors}
+          margin={{ top: 5, right: 30, left: 20, bottom: 20 }}
+        >
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis 
+            dataKey="name" 
+            tick={{ fontSize: 12 }}
+            interval={0}
+          />
+          <YAxis />
+          <Tooltip 
+            formatter={(value) => [`${value} sản phẩm`]}
+            contentStyle={{ backgroundColor: '#fff', borderRadius: '8px' }}
+          />
+          <Legend />
+          <Bar dataKey="value" name="Số lượng">
             {topProductsWithColors.map((entry, index) => (
               <Cell 
                 key={`cell-${index}`} 
                 fill={entry.color}
               />
             ))}
-          </Pie>
-          <Tooltip 
-            formatter={(value, name) => [`${value} sản phẩm`, name]}
-            contentStyle={{ backgroundColor: '#fff', borderRadius: '8px' }}
-          />
-          <Legend 
-            formatter={(value, entry) => (
-              <span style={{ color: entry.color }}>{value}</span>
-            )}
-          />
-        </PieChart>
+          </Bar>
+        </BarChart>
       </ResponsiveContainer>
     </div>
   );

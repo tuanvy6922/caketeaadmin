@@ -134,7 +134,7 @@ const HomeScreen = () => {
     setChartData({ daily: dailyData, monthly: monthlyData });
   };
 
-  // Hàm tính số lượng sản phẩm đã bán
+  // Hàm tính số lượng sản phẩm đã bán nhiều nhất
   const calculateTopProducts = (billsList) => {
     const productStats = {};
     
