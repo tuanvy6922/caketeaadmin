@@ -16,7 +16,11 @@ const BillStats = ({ totalRevenue }) => {
           <div style={styles.statIcon}><FiDollarSign/></div>
           <div style={styles.statInfo}>
             <div style={styles.statLabel}>{stat.label}</div>
-            <div style={styles.statValue}>{stat.value.toLocaleString('vi-VN')}đ</div>
+            <div style={styles.statValue}>
+              {typeof stat.value === 'number' 
+                ? stat.value.toLocaleString('vi-VN')
+                : Number(stat.value.toString().replace(/[đ,]/g, '')).toLocaleString('vi-VN')}đ
+            </div>
           </div>
         </div>
       ))}

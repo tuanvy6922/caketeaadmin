@@ -4,10 +4,13 @@ import { FiDownload } from 'react-icons/fi';
 const BillFilters = ({ 
   searchQuery, 
   statusFilter, 
-  dateFilter, 
+  dateFilter,
+  startDate,
+  endDate,
   handleSearch, 
   handleStatusFilter, 
   handleDateFilter,
+  handleDateRangeFilter,
   exportToExcel,
   statusOptions 
 }) => {
@@ -26,7 +29,24 @@ const BillFilters = ({
       </div>
       
       <div style={styles.rightControls}>
-        <button onClick={exportToExcel} style={styles.exportButton} title="Xuất danh sách hóa đơn">
+        <div style={styles.dateRangeContainer}>
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) => handleDateRangeFilter(e.target.value, endDate)}
+            style={styles.dateInput}
+          />
+          <span style={styles.dateRangeSeparator}>đến</span>
+          <input
+            type="date"
+            value={endDate}
+            min={startDate}
+            onChange={(e) => handleDateRangeFilter(startDate, e.target.value)}
+            style={styles.dateInput}
+          />
+        </div>
+
+        <button onClick={exportToExcel} style={styles.exportButton}>
           <FiDownload style={styles.exportIcon} /> Xuất Excel
         </button>
 
@@ -72,7 +92,7 @@ const styles = {
   },
   searchContainer: {
     position: 'relative',
-    width: '100%',
+    width: '90%',
     maxWidth: '400px',
   },
   searchInput: {
@@ -104,6 +124,21 @@ const styles = {
     fontSize: '14px',
     minWidth: '120px',
   },
+  dateRangeContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+  },
+  dateInput: {
+    padding: '8px 12px',
+    borderRadius: '4px',
+    border: '1px solid #ced4da',
+    fontSize: '14px',
+    width: '140px',
+  },
+  dateRangeSeparator: {
+    color: '#6c757d',
+  }
 };
 
 export default BillFilters; 

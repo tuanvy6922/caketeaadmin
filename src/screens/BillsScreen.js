@@ -22,6 +22,9 @@ const BillsScreen = ({ navigation }) => {
     month: 0,
     total: 0
   });
+  const [selectedMonth, setSelectedMonth] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   const statusOptions = {
     'all': 'Tất cả trạng thái',
@@ -38,70 +41,102 @@ const BillsScreen = ({ navigation }) => {
 
   const handleSearch = (query) => {
     setSearchQuery(query);
-    applyFilters(bills, query, statusFilter, dateFilter);
+    applyFilters(bills, query, statusFilter, dateFilter, startDate, endDate);
   };
 
   const handleStatusFilter = (status) => {
     setStatusFilter(status);
-    applyFilters(bills, searchQuery, status, dateFilter);
+    applyFilters(bills, searchQuery, status, dateFilter, startDate, endDate);
   };
 
   const handleDateFilter = (date) => {
     setDateFilter(date);
-    applyFilters(bills, searchQuery, statusFilter, date);
+    applyFilters(bills, searchQuery, statusFilter, date, startDate, endDate);
   };
 
-  const applyFilters = (billsList, search, status, date) => {
+  const handleMonthFilter = (monthYear) => {
+    setSelectedMonth(monthYear);
+    applyFilters(bills, searchQuery, statusFilter, dateFilter, monthYear, startDate, endDate);
+  };
+
+  const handleDateRangeFilter = (start, end) => {
+    setStartDate(start);
+    setEndDate(end);
+    applyFilters(bills, searchQuery, statusFilter, dateFilter, start, end);
+  };
+
+  const applyFilters = (billsList, search, status, dateFilter, start, end) => {
     let filtered = [...billsList];
 
     if (search) {
-      filtered = filtered.filter(bill => bill.fullName?.toLowerCase().includes(search.toLowerCase()) || bill.user?.toLowerCase().includes(search.toLowerCase()));
+      filtered = filtered.filter(bill => 
+        bill.fullName?.toLowerCase().includes(search.toLowerCase()) || 
+        bill.user?.toLowerCase().includes(search.toLowerCase())
+      );
     }
 
     if (status !== 'all') {
       filtered = filtered.filter(bill => bill.status === status);
     }
 
-    if (date !== 'all') {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const yesterday = new Date(today);
-      yesterday.setDate(yesterday.getDate() - 1);
-      const lastWeek = new Date(today);
-      lastWeek.setDate(lastWeek.getDate() - 7);
+    // Filter theo khoảng thời gian đã chọn
+    if (start && end) {
+      const startDateTime = new Date(start);
+      startDateTime.setHours(0, 0, 0, 0);
+      const endDateTime = new Date(end);
+      endDateTime.setHours(23, 59, 59, 999);
 
       filtered = filtered.filter(bill => {
         const billDate = bill.date?.toDate() || new Date(bill.date);
-        billDate.setHours(0, 0, 0, 0);
+        return billDate >= startDateTime && billDate <= endDateTime;
+      });
 
-        switch(date) {
+      // Tính toán doanh thu cho khoảng thời gian đã chọn
+      const filteredRevenue = calculateFilteredRevenue(filtered, start, end);
+      setTotalRevenue(filteredRevenue);
+    } 
+    // Filter theo các option có sẵn (hôm nay, 7 ngày, 30 ngày)
+    else if (dateFilter !== 'all') {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      filtered = filtered.filter(bill => {
+        const billDate = bill.date?.toDate() || new Date(bill.date);
+        const billDateTime = new Date(billDate);
+        billDateTime.setHours(0, 0, 0, 0);
+
+        switch(dateFilter) {
           case 'today':
-            return billDate.getTime() === today.getTime();
-          case 'yesterday':
-            return billDate.getTime() === yesterday.getTime();
-          case 'week':
-            return billDate >= lastWeek;
+            return billDateTime.getTime() === today.getTime();
+          case 'week': {
+            const lastWeek = new Date(today);
+            lastWeek.setDate(lastWeek.getDate() - 7);
+            return billDateTime >= lastWeek;
+          }
+          case 'month': {
+            const lastMonth = new Date(today);
+            lastMonth.setMonth(lastMonth.getMonth() - 1);
+            return billDateTime >= lastMonth;
+          }
           default:
             return true;
         }
       });
+
+      // Tính toán doanh thu cho filter có sẵn
+      const revenue = calculateRevenue(filtered);
+      setTotalRevenue(revenue);
+    } else {
+      // Nếu không có bất kỳ filter nào
+      const revenue = calculateRevenue(filtered);
+      setTotalRevenue(revenue);
     }
 
     setFilteredBills(filtered);
     setCurrentPage(1);
   };
 
-  // Tính toán doanh thu
-  const calculateRevenue = (billsList) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    const lastWeek = new Date(today);
-    lastWeek.setDate(lastWeek.getDate() - 7);
-    
-    const lastMonth = new Date(today);
-    lastMonth.setMonth(lastMonth.getMonth() - 1);
-
+  const calculateFilteredRevenue = (billsList, startDate, endDate) => {
     const revenue = {
       today: 0,
       week: 0,
@@ -109,28 +144,31 @@ const BillsScreen = ({ navigation }) => {
       total: 0
     };
 
+    if (!startDate || !endDate) return revenue;
+
+    const start = new Date(startDate);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(endDate);
+    end.setHours(23, 59, 59, 999);
+
     billsList.forEach(bill => {
-      if (bill.status !== 'cancelled') {
+      if (bill.status === 'completed') {
         const billDate = bill.date?.toDate() || new Date(bill.date);
-        const billTotal = bill.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-
-        revenue.total += billTotal;
-
-        if (billDate.getTime() >= today.getTime()) {
-          revenue.today += billTotal;
-        }
-
-        if (billDate.getTime() >= lastWeek.getTime()) {
-          revenue.week += billTotal;
-        }
-
-        if (billDate.getTime() >= lastMonth.getTime()) {
-          revenue.month += billTotal;
+        if (billDate >= start && billDate <= end) {
+          // Đảm bảo totalAmount là số
+          let amount = 0;
+          if (typeof bill.totalAmount === 'number') {
+            amount = bill.totalAmount;
+          } else if (typeof bill.totalAmount === 'string') {
+            // Loại bỏ 'đ' và dấu ',' rồi chuyển sang số
+            amount = Number(bill.totalAmount.replace(/[đ,]/g, ''));
+          }
+          revenue.total += amount;
         }
       }
     });
 
-    setTotalRevenue(revenue);
+    return revenue;
   };
 
   useEffect(() => {
@@ -142,7 +180,7 @@ const BillsScreen = ({ navigation }) => {
           ...doc.data()
         }));
         setBills(billsList);
-        applyFilters(billsList, searchQuery, statusFilter, dateFilter);
+        applyFilters(billsList, searchQuery, statusFilter, dateFilter, startDate, endDate);
 
         // Tính toán doanh thu
         const now = new Date();
@@ -229,11 +267,16 @@ const BillsScreen = ({ navigation }) => {
           searchQuery={searchQuery}
           statusFilter={statusFilter}
           dateFilter={dateFilter}
+          startDate={startDate}
+          endDate={endDate}
           handleSearch={handleSearch}
           handleStatusFilter={handleStatusFilter}
           handleDateFilter={handleDateFilter}
+          handleDateRangeFilter={handleDateRangeFilter}
           exportToExcel={() => exportToExcel(filteredBills, totalRevenue)}
           statusOptions={statusOptions}
+          selectedMonth={selectedMonth}
+          handleMonthFilter={handleMonthFilter}
         />
         {/* Hiển thị bảng hóa đơn */}
         <BillTable

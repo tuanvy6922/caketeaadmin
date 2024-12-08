@@ -7,15 +7,16 @@ import Swal from 'sweetalert2'; // Import SweetAlert2
 const DrawerContent = (props) => {
   const { navigation, adminInfo } = props;
 
+  // Menu items cho admin
   const menuItems = [
     { icon: <FiHome size={24} />, text: 'Trang chủ', route: 'Home' },
-    { icon: <FiFileText size={24} />, text: 'Quản lý hóa đơn', route: 'BillsScreen' },
-    { icon: <FiGrid size={24} />, text: 'Quản lý danh mục', route: 'CategoryScreen' },
+    { icon: <FiFileText size={24} />, text: 'Quản lý đơn hàng', route: 'BillsScreen' },
     { icon: <FiBox size={24} />, text: 'Quản lý sản phẩm', route: 'ProductScreen' },
-    { icon: <FiImage size={24} />, text: 'Quản lý slider', route: 'SlidersScreen' },
-    { icon: <FiHome size={24} />, text: 'Quản lý cửa hàng', route: 'StoreScreen' },
     { icon: <FiUsers size={24} />, text: 'Quản lý người dùng', route: 'UsersScreen' },
     { icon: <FiTag size={24} />, text: 'Quản lý phiếu giảm giá', route: 'VoucherScreen' },
+    { icon: <FiImage size={24} />, text: 'Quản lý slider', route: 'SlidersScreen' },
+    { icon: <FiGrid size={24} />, text: 'Quản lý danh mục', route: 'CategoryScreen' },
+    { icon: <FiHome size={24} />, text: 'Thông tin cửa hàng', route: 'StoreScreen' },
   ];
 
   const handleLogout = async () => {
@@ -63,6 +64,7 @@ const DrawerContent = (props) => {
     }
   };
 
+  // Render
   return (
     <div style={styles.drawerContainer}>
       {adminInfo && (

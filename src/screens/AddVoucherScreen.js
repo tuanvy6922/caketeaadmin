@@ -1,41 +1,55 @@
 import React, { useState } from 'react';
 import { db } from '../connect/firebaseConfig';
-import { collection, addDoc } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, doc } from 'firebase/firestore';
 import Header from '../components/Header';
 import { FiArrowLeft } from 'react-icons/fi';
 import { useNavigation } from '@react-navigation/native';
 
-const AddVoucherScreen = () => {
+const AddVoucherScreen = ({ route }) => {
   const navigation = useNavigation();
   const [message, setMessage] = useState({ text: '', type: '' });
+  const editingVoucher = route.params?.voucher;
 
   const [formData, setFormData] = useState({
-    code: '',
-    discount: '',
-    startDate: '',
-    endDate: '',
-    minimumAmount: '',
-    isActive: true
+    code: editingVoucher?.code || '',
+    discount: editingVoucher ? (editingVoucher.discount * 100).toString() : '',
+    startDate: editingVoucher ? new Date(editingVoucher.startDate).toISOString().slice(0, 16) : '',
+    endDate: editingVoucher ? new Date(editingVoucher.endDate).toISOString().slice(0, 16) : '',
+    minimumAmount: editingVoucher ? editingVoucher.minimumAmount.toString() : '',
+    isActive: editingVoucher ? editingVoucher.isActive : true,
+    usedBy: editingVoucher ? editingVoucher.usedBy : []
   });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await addDoc(collection(db, 'Vouchers'), {
-        ...formData,
-        discount: parseFloat(formData.discount) / 100,
-        minimumAmount: parseFloat(formData.minimumAmount),
-        startDate: new Date(formData.startDate).getTime(),
-        endDate: new Date(formData.endDate).getTime(),
-      });
-      setMessage({ text: 'Thêm voucher thành công!', type: 'success' });
+      if (editingVoucher) {
+        await updateDoc(doc(db, 'Vouchers', editingVoucher.id), {
+          ...formData,
+          discount: parseFloat(formData.discount) / 100,
+          minimumAmount: parseFloat(formData.minimumAmount),
+          startDate: new Date(formData.startDate).getTime(),
+          endDate: new Date(formData.endDate).getTime(),
+        });
+        setMessage({ text: 'Cập nhật voucher thành công!', type: 'success' });
+      } else {
+        await addDoc(collection(db, 'Vouchers'), {
+          ...formData,
+          discount: parseFloat(formData.discount) / 100,
+          minimumAmount: parseFloat(formData.minimumAmount),
+          startDate: new Date(formData.startDate).getTime(),
+          endDate: new Date(formData.endDate).getTime(),
+        });
+        setMessage({ text: 'Thêm voucher thành công!', type: 'success' });
+      }
+      
       setTimeout(() => {
         setMessage({ text: '', type: '' });
         navigation.goBack();
       }, 2000);
     } catch (error) {
-      console.error('Error adding voucher:', error);
-      setMessage({ text: 'Lỗi khi thêm voucher!', type: 'error' });
+      console.error('Error:', error);
+      setMessage({ text: 'Có lỗi xảy ra!', type: 'error' });
       setTimeout(() => setMessage({ text: '', type: '' }), 3000);
     }
   };
@@ -64,7 +78,7 @@ const AddVoucherScreen = () => {
         </div>
         
         <div style={styles.formCard}>
-          <h2 style={styles.title}>Thêm Voucher Mới</h2>
+          <h2 style={styles.title}>{editingVoucher ? 'Sửa Voucher' : 'Thêm Voucher Mới'}</h2>
           <form onSubmit={handleSubmit} style={styles.form}>
             <div style={styles.formGroup}>
               <label style={styles.label}>Mã giảm giá:</label>
@@ -128,7 +142,7 @@ const AddVoucherScreen = () => {
 
             <div style={styles.buttonGroup}>
               <button type="submit" style={styles.submitButton}>
-                Thêm Voucher
+                {editingVoucher ? 'Cập Nhật' : 'Thêm Voucher'}
               </button>
               <button 
                 type="button"

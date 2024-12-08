@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { db } from '../connect/firebaseConfig';
-import { collection, onSnapshot } from 'firebase/firestore';
+import { collection, onSnapshot, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { useFocusEffect } from '@react-navigation/native';
 import Header from '../components/Header';
 import { FiEdit2, FiSearch } from 'react-icons/fi';
@@ -24,6 +24,24 @@ const VoucherScreen = ({ navigation }) => {
     setCurrentPage(pageNumber);
   };
 
+  // Thêm hàm kiểm tra và cập nhật trạng thái voucher
+  const checkAndUpdateVoucherStatus = async (voucher) => {
+    const currentTime = new Date().getTime();
+    const isExpired = currentTime > voucher.endDate;
+    
+    // Chỉ cập nhật nếu trạng thái hiện tại không khớp với trạng thái thực tế
+    if (voucher.isActive !== !isExpired) {
+      try {
+        await updateDoc(doc(db, 'Vouchers', voucher.id), {
+          isActive: !isExpired
+        });
+      } catch (error) {
+        console.error('Error updating voucher status:', error);
+      }
+    }
+  };
+
+  // Cập nhật useFocusEffect để thêm việc kiểm tra trạng thái
   useFocusEffect(
     React.useCallback(() => {
       const unsubscribe = onSnapshot(
@@ -34,6 +52,12 @@ const VoucherScreen = ({ navigation }) => {
               id: doc.id,
               ...doc.data()
             }));
+            
+            // Kiểm tra và cập nhật trạng thái cho mỗi voucher
+            voucherList.forEach(voucher => {
+              checkAndUpdateVoucherStatus(voucher);
+            });
+            
             setVouchers(voucherList);
           } catch (error) {
             console.error('Error processing vouchers:', error);
@@ -74,6 +98,20 @@ const VoucherScreen = ({ navigation }) => {
   // Lọc vouchers hiển thị
   const displayVouchers = searchTerm.trim() !== '' ? searchResults : vouchers;
   const currentDisplayVouchers = displayVouchers.slice(indexOfFirstVoucher, indexOfLastVoucher);
+
+  const handleDeleteVoucher = async (voucherId) => {
+    if (window.confirm('Bạn có chắc chắn muốn xóa voucher này không?')) {
+      try {
+        await deleteDoc(doc(db, 'Vouchers', voucherId));
+        setMessage({ text: 'Xóa voucher thành công!', type: 'success' });
+        setTimeout(() => setMessage({ text: '', type: '' }), 2000);
+      } catch (error) {
+        console.error('Error deleting voucher:', error);
+        setMessage({ text: 'Lỗi khi xóa voucher!', type: 'error' });
+        setTimeout(() => setMessage({ text: '', type: '' }), 3000);
+      }
+    }
+  };
 
   return (
     <div style={styles.container}>
@@ -129,13 +167,21 @@ const VoucherScreen = ({ navigation }) => {
                       {voucher.isActive ? 'Đang hoạt động' : 'Hết hiệu lực'}
                     </span>
                   </td>
-                  <td style={{...styles.td, textAlign: 'center'}}>
-                    <button
-                      onClick={() => navigation.navigate('EditVoucherScreen', { voucher })}
-                      style={styles.editButton}
-                    >
-                      <FiEdit2 style={styles.buttonIcon} /> Sửa
-                    </button>
+                  <td style={{...styles.td, textAlign: 'center', padding: '8px 4px'}}>
+                    <div style={styles.actionButtons}>
+                      <button
+                        onClick={() => navigation.navigate('AddVoucherScreen', { voucher })}
+                        style={styles.editButton}
+                      >
+                        <FiEdit2 size={14} /> Sửa
+                      </button>
+                      <button
+                        onClick={() => handleDeleteVoucher(voucher.id)}
+                        style={styles.deleteButton}
+                      >
+                        Xóa
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -249,14 +295,19 @@ const styles = {
   editButton: {
     display: 'flex',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: '4px',
-    padding: '6px 12px',
+    padding: '6px 16px',
     backgroundColor: '#4CAF50',
     color: 'white',
     border: 'none',
     borderRadius: '4px',
     cursor: 'pointer',
-    margin: '0 auto',
+    fontSize: '14px',
+    minWidth: '80px',
+    '&:hover': {
+      backgroundColor: '#45a049',
+    }
   },
   buttonIcon: {
     fontSize: '16px',
@@ -278,6 +329,31 @@ const styles = {
       cursor: 'not-allowed',
       opacity: 0.5,
     },
+  },
+  actionButtons: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: '8px',
+    minWidth: '160px',
+    margin: '0 auto',
+  },
+  deleteButton: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '4px',
+    padding: '6px 16px',
+    backgroundColor: '#dc3545',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '14px',
+    minWidth: '80px',
+    '&:hover': {
+      backgroundColor: '#c82333',
+    }
   },
 };
 

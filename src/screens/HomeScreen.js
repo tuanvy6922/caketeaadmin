@@ -346,14 +346,14 @@ const HomeScreen = () => {
           <div style={styles.revenueCard}>
             <FiDollarSign style={styles.revenueIcon} />
             <div>
-              <h3 style={styles.revenueLabel}>Tuần này</h3>
+              <h3 style={styles.revenueLabel}>7 Ngày qua</h3>
               <p style={styles.revenueValue}>{totalRevenue.week.toLocaleString('vi-VN')}đ</p>
             </div>
           </div>
           <div style={styles.revenueCard}>
             <FiDollarSign style={styles.revenueIcon} />
             <div>
-              <h3 style={styles.revenueLabel}>Tháng này</h3>
+              <h3 style={styles.revenueLabel}>30 Ngày qua</h3>
               <p style={styles.revenueValue}>{totalRevenue.month.toLocaleString('vi-VN')}đ</p>
             </div>
           </div>

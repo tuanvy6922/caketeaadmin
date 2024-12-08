@@ -156,7 +156,7 @@ const BillDetailScreen = ({ navigation, route }) => {
               {bill.voucherCode && bill.voucherCode !== 'Không có' && (
                 <div style={styles.discountRow}>
                   <span>Giảm giá ({bill.voucherCode}):</span>
-                  <span>-{bill.voucherDiscount.toLocaleString('vi-VN')}đ</span>
+                  <span>-{(bill.voucherDiscount * 100).toFixed(0)}%</span>
                 </div>
               )}
               

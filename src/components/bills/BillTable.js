@@ -32,7 +32,16 @@ const BillTable = ({
               <td style={{...styles.td, textAlign: 'center'}}>{formatDate(bill.date)}</td>
               <td style={{...styles.td, textAlign: 'center'}}>{bill.paymentMethod}</td>
               <td style={{...styles.td, textAlign: 'center'}}>
-                <select value={bill.status} onChange={(e) => handleStatusChange(bill.id, e.target.value)} style={styles.statusSelect}>
+                <select 
+                  value={bill.status} 
+                  onChange={(e) => handleStatusChange(bill.id, e.target.value)} 
+                  style={{
+                    ...styles.statusSelect,
+                    backgroundColor: bill.status === 'completed' || bill.status === 'cancelled' ? '#f8f9fa' : '#fff',
+                    cursor: bill.status === 'completed' || bill.status === 'cancelled' ? 'not-allowed' : 'pointer',
+                  }}
+                  disabled={bill.status === 'completed' || bill.status === 'cancelled'}
+                >
                   <option value="confirmed">Đã xác nhận</option>
                   <option value="completed">Hoàn thành</option>
                   <option value="cancelled">Đã hủy</option>

@@ -32,21 +32,33 @@ export const calculateRevenue = (billsList) => {
   };
 
   billsList.forEach(bill => {
-    if (bill.status !== 'cancelled') {
+    // Chỉ tính các đơn hàng đã hoàn thành
+    if (bill.status === 'completed') {
       const billDate = bill.date?.toDate() || new Date(bill.date);
-      const billTotal = bill.totalAmount;
+      // Đảm bảo totalAmount là số
+      const billTotal = typeof bill.totalAmount === 'number' 
+        ? bill.totalAmount 
+        : Number(bill.totalAmount.replace(/[đ,]/g, ''));
 
+      // Tổng doanh thu
       revenue.total += billTotal;
 
-      if (billDate.getTime() >= today.getTime()) {
+      // Reset thời gian về đầu ngày để so sánh chính xác
+      const billDateTime = new Date(billDate);
+      billDateTime.setHours(0, 0, 0, 0);
+
+      // Doanh thu hôm nay
+      if (billDateTime.getTime() === today.getTime()) {
         revenue.today += billTotal;
       }
 
-      if (billDate.getTime() >= lastWeek.getTime()) {
+      // Doanh thu 7 ngày
+      if (billDateTime >= lastWeek) {
         revenue.week += billTotal;
       }
 
-      if (billDate.getTime() >= lastMonth.getTime()) {
+      // Doanh thu 30 ngày
+      if (billDateTime >= lastMonth) {
         revenue.month += billTotal;
       }
     }
