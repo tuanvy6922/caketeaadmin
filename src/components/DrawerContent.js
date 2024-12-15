@@ -1,26 +1,62 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { FiUser, FiFileText, FiGrid, FiBox, FiImage, FiHome, FiUsers, FiLogOut, FiTag } from 'react-icons/fi';
-import { auth } from '../connect/firebaseConfig';
+import { auth, db } from '../connect/firebaseConfig';
 import { signOut } from 'firebase/auth';
 import Swal from 'sweetalert2'; // Import SweetAlert2
+import { doc, updateDoc, serverTimestamp, getDoc } from 'firebase/firestore'; // Thêm các import cần thiết
 
 const DrawerContent = (props) => {
   const { navigation, adminInfo } = props;
+  const [userRole, setUserRole] = useState(null);
+
+  // Thêm useEffect để kiểm tra role
+  useEffect(() => {
+    const checkUserRole = async () => {
+      try {
+        const user = auth.currentUser;
+        if (user) {
+          const docRef = doc(db, "Staff", user.email);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            setUserRole(docSnap.data().role);
+            console.log("Fetched role:", docSnap.data().role);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching role:", error);
+      }
+    };
+
+    checkUserRole();
+  }, []);
 
   // Menu items cho admin
-  const menuItems = [
+  const adminMenuItems = [
     { icon: <FiHome size={24} />, text: 'Trang chủ', route: 'Home' },
-    { icon: <FiFileText size={24} />, text: 'Quản lý đơn hàng', route: 'BillsScreen' },
-    { icon: <FiBox size={24} />, text: 'Quản lý sản phẩm', route: 'ProductScreen' },
-    { icon: <FiUsers size={24} />, text: 'Quản lý người dùng', route: 'UsersScreen' },
-    { icon: <FiTag size={24} />, text: 'Quản lý phiếu giảm giá', route: 'VoucherScreen' },
-    { icon: <FiImage size={24} />, text: 'Quản lý slider', route: 'SlidersScreen' },
-    { icon: <FiGrid size={24} />, text: 'Quản lý danh mục', route: 'CategoryScreen' },
+    { icon: <FiFileText size={24} />, text: 'Đơn hàng', route: 'BillsScreen' },
+    { icon: <FiBox size={24} />, text: 'Sản phẩm', route: 'ProductScreen' },
+    { icon: <FiUsers size={24} />, text: 'Tài khoản khách hàng', route: 'UsersScreen' },
+    { icon: <FiTag size={24} />, text: 'Mã giảm giá', route: 'VoucherScreen' },
+    { icon: <FiUsers size={24} />, text: 'Nhân viên', route: 'StaffScreen' },
+    { icon: <FiImage size={24} />, text: 'Quảng cáo Slider', route: 'SlidersScreen' },
+    { icon: <FiGrid size={24} />, text: 'Danh mục thể loại', route: 'CategoryScreen' },
     { icon: <FiHome size={24} />, text: 'Thông tin cửa hàng', route: 'StoreScreen' },
   ];
 
+  // Menu items cho staff
+  const staffMenuItems = [
+    { icon: <FiHome size={24} />, text: 'Trang chủ', route: 'Home' },
+    { icon: <FiFileText size={24} />, text: 'Đơn hàng', route: 'BillsScreen' },
+    { icon: <FiBox size={24} />, text: 'Sản phẩm', route: 'ProductScreen' },
+    { icon: <FiUsers size={24} />, text: 'Tài khoản khách hàng', route: 'UsersScreen' },
+  ];
+
+  // Sửa logic chọn menu items để sử dụng cả adminInfo và userRole
+  const menuItems = (adminInfo?.role === 'Admin' || userRole === 'Admin') 
+    ? adminMenuItems 
+    : staffMenuItems;
+
   const handleLogout = async () => {
-    // Hiện thông báo xác nhận trước khi đăng xuất
     const result = await Swal.fire({
       title: 'Xác nhận đăng xuất',
       text: 'Bạn có chắc chắn muốn đăng xuất không?',
@@ -32,27 +68,31 @@ const DrawerContent = (props) => {
       cancelButtonText: 'Hủy'
     });
 
-    // Nếu người dùng xác nhận đăng xuất
     if (result.isConfirmed) {
       try {
-        await signOut(auth);
+        const user = auth.currentUser;
+        if (user) {
+          // Cập nhật thời gian kết thúc khi đăng xuất
+          await updateDoc(doc(db, "Staff", user.email), {
+            endActivityTime: serverTimestamp(),
+            isCurrentlyActive: false
+          });
+        }
         
-        // Hiện thông báo đăng xuất thành công
+        await signOut(auth);
         await Swal.fire({
           title: 'Thành công!',
           text: 'Đăng xuất thành công',
           icon: 'success',
-          timer: 1500, // Tự động đóng sau 1.5 giây
+          timer: 1500,
           showConfirmButton: false
         });
 
-        // Sau khi hiện thông báo thành công, chuyển về trang Login
         navigation.reset({
           index: 0,
           routes: [{ name: 'Login' }],
         });
       } catch (error) {
-        // Hiện thông báo lỗi nếu đăng xuất thất bại
         Swal.fire({
           title: 'Lỗi!',
           text: 'Có lỗi xảy ra khi đăng xuất',
@@ -73,18 +113,6 @@ const DrawerContent = (props) => {
             <FiUser size={50} />
             <span style={styles.adminText}>{adminInfo.fullName}</span>
             <span style={styles.adminEmail}>{adminInfo.email}</span>
-            <span style={styles.adminRole}>{adminInfo.role}</span>
-          </div>
-          
-          <div style={styles.adminInfo}>
-            <div style={styles.infoItem}>
-              <span style={styles.label}>Địa chỉ:</span>
-              <span style={styles.value}>{adminInfo.address}</span>
-            </div>
-            <div style={styles.infoItem}>
-              <span style={styles.label}>Số điện thoại:</span>
-              <span style={styles.value}>{adminInfo.phoneNumber}</span>
-            </div>
           </div>
         </>
       )}

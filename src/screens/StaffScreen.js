@@ -5,45 +5,51 @@ import { useFocusEffect } from '@react-navigation/native';
 import Header from '../components/Header';
 import { FiEdit2, FiLock, FiUnlock, FiSearch } from 'react-icons/fi';
 
-const UsersScreen = ({ navigation }) => {
-  const [users, setUsers] = useState([]);
+const StaffScreen = ({ navigation }) => {
+  const [staffs, setStaffs] = useState([]);
   const [message, setMessage] = useState({ text: '', type: '' });
   const [currentPage, setCurrentPage] = useState(1);
-  const usersPerPage = 10;
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
-  // Tính toán users cho trang hiện tại
-  const indexOfLastUser = currentPage * usersPerPage;
-  const indexOfFirstUser = indexOfLastUser - usersPerPage;
-  const currentUsers = users.slice(indexOfFirstUser, indexOfLastUser);
-  const totalPages = Math.ceil(users.length / usersPerPage);
+  const staffsPerPage = 10;
+  const indexOfLastStaff = currentPage * staffsPerPage;
+  const indexOfFirstStaff = indexOfLastStaff - staffsPerPage;
+  const totalPages = Math.ceil(staffs.length / staffsPerPage);
 
-  const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber);
+  const formatDateTime = (timestamp) => {
+    if (!timestamp) return 'Chưa có';
+    return new Date(timestamp.toDate()).toLocaleString('vi-VN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    });
   };
 
   useFocusEffect(
     React.useCallback(() => {
       const unsubscribe = onSnapshot(
-        collection(db, 'Customer'),
+        collection(db, 'Staff'),
         (snapshot) => {
           try {
-            const usersList = snapshot.docs.map(doc => ({
+            const staffList = snapshot.docs.map(doc => ({
               id: doc.id,
               ...doc.data()
             }));
-            
-            setUsers(usersList);
+            setStaffs(staffList);
           } catch (error) {
-            console.error('Error processing users:', error);
-            setMessage({ text: 'Lỗi khi xử lý dữ liệu người dùng!', type: 'error' });
+            console.error('Error processing staffs:', error);
+            setMessage({ text: 'Lỗi khi xử lý dữ liệu nhân viên!', type: 'error' });
           }
         },
         (error) => {
-          console.error('Error listening to users:', error);
-          setMessage({ text: 'Lỗi khi theo dõi dữ liệu người dùng!', type: 'error' });
+          console.error('Error listening to staffs:', error);
+          setMessage({ text: 'Lỗi khi theo dõi dữ liệu nhân viên!', type: 'error' });
         }
       );
 
@@ -51,19 +57,19 @@ const UsersScreen = ({ navigation }) => {
     }, [])
   );
 
-  const handleUpdateUserState = async (userId, currentState) => {
-    const newState = currentState === 'Available' ? 'Blocked' : 'Available';
-    const confirmMessage = newState === 'Blocked' ? 
-      'Bạn có chắc chắn muốn khóa người dùng này?' : 
-      'Bạn có chắc chắn muốn mở khóa người dùng này?';
+  const handleUpdateStaffState = async (staffId, currentState) => {
+    const newState = currentState === 'Active' ? 'Inactive' : 'Active';
+    const confirmMessage = newState === 'Inactive' ? 
+      'Bạn có chắc chắn muốn vô hiệu hóa nhân viên này?' : 
+      'Bạn có chắc chắn muốn kích hoạt nhân viên này?';
 
     if (window.confirm(confirmMessage)) {
       try {
-        await updateDoc(doc(db, 'Customer', userId), {
+        await updateDoc(doc(db, 'Staff', staffId), {
           state: newState
         });
         setMessage({ 
-          text: `${newState === 'Blocked' ? 'Khóa' : 'Mở khóa'} người dùng thành công!`, 
+          text: `${newState === 'Inactive' ? 'Vô hiệu hóa' : 'Kích hoạt'} nhân viên thành công!`, 
           type: 'success' 
         });
         
@@ -71,13 +77,12 @@ const UsersScreen = ({ navigation }) => {
           setMessage({ text: '', type: '' });
         }, 3000);
       } catch (error) {
-        console.error('Error updating user state:', error);
-        setMessage({ text: 'Lỗi khi cập nhật trạng thái người dùng!', type: 'error' });
+        console.error('Error updating staff state:', error);
+        setMessage({ text: 'Lỗi khi cập nhật trạng thái nhân viên!', type: 'error' });
       }
     }
   };
 
-  // Hàm xử lý tìm kiếm
   const handleSearch = (value) => {
     setSearchTerm(value);
     if (value.trim() === '') {
@@ -86,33 +91,35 @@ const UsersScreen = ({ navigation }) => {
       return;
     }
 
-    const filtered = users.filter(user => 
-      user.fullName.toLowerCase().includes(value.toLowerCase()) ||
-      user.email.toLowerCase().includes(value.toLowerCase()) ||
-      user.phoneNumber.includes(value)
+    const filtered = staffs.filter(staff => 
+      staff.fullName.toLowerCase().includes(value.toLowerCase()) ||
+      staff.email.toLowerCase().includes(value.toLowerCase()) ||
+      staff.phoneNumber.includes(value)
     );
     
     setSearchResults(filtered);
     setShowSuggestions(true);
   };
 
-  // Hàm chọn user từ gợi ý
-  const handleSelectUser = (user) => {
-    setSearchTerm(user.fullName);
-    setSearchResults([users.find(u => u.id === user.id)]);
+  const handleSelectStaff = (staff) => {
+    setSearchTerm(staff.fullName);
+    setSearchResults([staffs.find(s => s.id === staff.id)]);
     setShowSuggestions(false);
   };
 
-  // Lọc users hiển thị
-  const displayUsers = searchTerm.trim() !== '' ? searchResults : users;
-  const currentDisplayUsers = displayUsers.slice(indexOfFirstUser, indexOfLastUser);
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const displayStaffs = searchTerm.trim() !== '' ? searchResults : staffs;
+  const currentDisplayStaffs = displayStaffs.slice(indexOfFirstStaff, indexOfLastStaff);
 
   return (
     <div style={styles.container}>
       <Header />
       <div style={styles.content}>
         <div style={styles.headerSection}>
-          <h1 style={styles.title}>Quản lý Người dùng</h1>
+          <h1 style={styles.title}>Quản lý Nhân viên</h1>
           <div style={styles.searchContainer}>
             <div style={styles.searchWrapper}>
               <FiSearch style={styles.searchIcon} />
@@ -127,17 +134,17 @@ const UsersScreen = ({ navigation }) => {
             </div>
             {showSuggestions && searchResults.length > 0 && (
               <div style={styles.suggestions}>
-                {searchResults.map(user => (
+                {searchResults.map(staff => (
                   <div
-                    key={user.id}
+                    key={staff.id}
                     style={styles.suggestionItem}
-                    onClick={() => handleSelectUser(user)}
+                    onClick={() => handleSelectStaff(staff)}
                   >
                     <div style={styles.suggestionInfo}>
-                      <span style={styles.suggestionName}>{user.fullName}</span>
-                      <span style={styles.suggestionEmail}>{user.email}</span>
+                      <span style={styles.suggestionName}>{staff.fullName}</span>
+                      <span style={styles.suggestionEmail}>{staff.email}</span>
                     </div>
-                    <span style={styles.suggestionPhone}>{user.phoneNumber}</span>
+                    <span style={styles.suggestionPhone}>{staff.phoneNumber}</span>
                   </div>
                 ))}
               </div>
@@ -145,59 +152,60 @@ const UsersScreen = ({ navigation }) => {
           </div>
         </div>
 
-        <div style={styles.userList}>
+        <div style={styles.staffList}>
           <table style={styles.table}>
             <thead>
               <tr>
                 <th style={{...styles.th, width: '5%', textAlign: 'center'}}>STT</th>
                 <th style={{...styles.th, width: '15%'}}>Họ tên</th>
-                <th style={{...styles.th, width: '20%'}}>Email</th>
-                <th style={{...styles.th, width: '15%'}}>Số điện thoại</th>
-                <th style={{...styles.th, width: '10%', textAlign: 'center'}}>Vai trò</th>
+                <th style={{...styles.th, width: '15%'}}>Email</th>
+                <th style={{...styles.th, width: '10%'}}>Số điện thoại</th>
+                <th style={{...styles.th, width: '15%'}}>Thời gian bắt đầu</th>
+                <th style={{...styles.th, width: '15%'}}>Thời gian kết thúc</th>
                 <th style={{...styles.th, width: '10%', textAlign: 'center'}}>Trạng thái</th>
-                <th style={{...styles.th, width: '25%', textAlign: 'center'}}>Thao tác</th>
+                <th style={{...styles.th, width: '15%', textAlign: 'center'}}>Thao tác</th>
               </tr>
             </thead>
             <tbody>
-              {currentDisplayUsers.map((user, index) => (
-                <tr key={user.id} style={styles.tr}>
-                  <td style={{...styles.td, textAlign: 'center'}}>{indexOfFirstUser + index + 1}</td>
-                  <td style={styles.td}>{user.fullName}</td>
-                  <td style={styles.td}>{user.email}</td>
-                  <td style={styles.td}>{user.phoneNumber}</td>
-                  <td style={{...styles.td, textAlign: 'center'}}>{user.role}</td>
+              {currentDisplayStaffs.map((staff, index) => (
+                <tr key={staff.id} style={styles.tr}>
+                  <td style={{...styles.td, textAlign: 'center'}}>{indexOfFirstStaff + index + 1}</td>
+                  <td style={styles.td}>{staff.fullName}</td>
+                  <td style={styles.td}>{staff.email}</td>
+                  <td style={styles.td}>{staff.phoneNumber}</td>
+                  <td style={styles.td}>{formatDateTime(staff.startActivityTime)}</td>
+                  <td style={styles.td}>
+                    {staff.endActivityTime ? 
+                      formatDateTime(staff.endActivityTime) : 
+                      (staff.startActivityTime ? 'Đang hoạt động' : 'Chưa có')
+                    }
+                  </td>
                   <td style={{...styles.td, textAlign: 'center'}}>
                     <span style={{
                       ...styles.statusBadge,
-                      backgroundColor: user.state === 'Available' ? '#28a745' : '#dc3545'
+                      backgroundColor: staff.startActivityTime && !staff.endActivityTime ? '#28a745' : '#dc3545'
                     }}>
-                      {user.state === 'Available' ? 'Hoạt động' : 'Đã khóa'}
+                      {staff.startActivityTime && !staff.endActivityTime ? 'Đang hoạt động' : 'Không hoạt động'}
                     </span>
                   </td>
                   <td style={{...styles.td, textAlign: 'center'}}>
                     <div style={styles.actionButtons}>
                       <button
-                        onClick={() => navigation.navigate('EditUserScreen', { user })}
-                        style={{
-                          ...styles.actionButton,
-                          backgroundColor: '#4CAF50',
-                          opacity: user.role === 'Admin' ? 0.5 : 1,
-                          cursor: user.role === 'Admin' ? 'not-allowed' : 'pointer'
-                        }} disabled={user.role === 'Admin'}> <FiEdit2 style={styles.buttonIcon} /> Sửa
+                        onClick={() => navigation.navigate('EditStaffScreen', { staff })}
+                        style={{...styles.actionButton, backgroundColor: '#4CAF50'}}
+                      >
+                        <FiEdit2 style={styles.buttonIcon} /> Sửa
                       </button>
                       <button
-                        onClick={() => handleUpdateUserState(user.id, user.state)}
+                        onClick={() => handleUpdateStaffState(staff.id, staff.state)}
                         style={{
                           ...styles.actionButton,
-                          backgroundColor: user.state === 'Available' ? '#ffc107' : '#28a745',
-                          opacity: user.role === 'Admin' ? 0.5 : 1,
-                          cursor: user.role === 'Admin' ? 'not-allowed' : 'pointer'
+                          backgroundColor: staff.state === 'Active' ? '#ffc107' : '#28a745'
                         }}
-                        disabled={user.role === 'Admin'}
                       >
-                        {user.state === 'Available' ? 
-                          <><FiLock style={styles.buttonIcon} />Khóa</> : 
-                          <><FiUnlock style={styles.buttonIcon} />Mở khóa</>
+                        {staff.state === 'Active' ? 
+                          <><FiLock style={styles.buttonIcon} />Vô hiệu</> : 
+                          <><FiUnlock style={styles.buttonIcon} />Kích hoạt</>
                         }
                       </button>
                     </div>
@@ -206,7 +214,7 @@ const UsersScreen = ({ navigation }) => {
               ))}
             </tbody>
           </table>
-          {/* Phân trang */}
+
           <div style={styles.pagination}>
             <button 
               onClick={() => handlePageChange(currentPage - 1)}
@@ -266,7 +274,6 @@ const styles = {
     backgroundColor: '#f8f9fa',
     display: 'flex',
     flexDirection: 'column',
-    overflow: 'hidden',
   },
   content: {
     flex: 1,
@@ -367,6 +374,9 @@ const styles = {
     color: 'white',
     fontSize: '12px',
     fontWeight: '500',
+    display: 'inline-block',
+    minWidth: '100px',
+    textAlign: 'center'
   },
   pagination: {
     display: 'flex',
@@ -454,6 +464,7 @@ const styles = {
     fontSize: '13px',
     color: '#666',
   },
+  // ... các styles khác giống như trong UsersScreen
 };
 
-export default UsersScreen;
+export default StaffScreen;

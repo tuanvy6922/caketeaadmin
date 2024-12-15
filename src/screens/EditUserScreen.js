@@ -16,7 +16,7 @@ const EditUserScreen = ({ navigation, route }) => {
 
   const handleUpdate = async () => {
     try {
-      await updateDoc(doc(db, 'USERS', user.id), userData);
+      await updateDoc(doc(db, 'Customer', user.id), userData);
       setMessage({ text: 'Cập nhật thông tin thành công!', type: 'success' });
       setTimeout(() => {
         navigation.goBack();

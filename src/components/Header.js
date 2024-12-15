@@ -15,9 +15,16 @@ const Header = ({ title = "Dashboard" }) => {
       try {
         const user = auth.currentUser;
         if (user) {
-          const userDoc = await getDoc(doc(db, 'USERS', user.email));
+          console.log("Current user email:", user.email);
+          
+          const userDoc = await getDoc(doc(db, 'Staff', user.email));
+          console.log("User doc exists:", userDoc.exists());
+          console.log("User data:", userDoc.data());
+          
           if (userDoc.exists()) {
             setUserInfo(userDoc.data());
+          } else {
+            console.log("No such document in Staff collection!");
           }
         }
       } catch (error) {

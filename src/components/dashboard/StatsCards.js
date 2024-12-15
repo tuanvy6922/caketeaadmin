@@ -9,7 +9,7 @@ const StatsCards = ({ stats }) => {
           <FiShoppingBag style={{...styles.statsIcon, color: '#4CAF50'}} />
         </div>
         <div style={styles.statsInfo}>
-          <h3 style={styles.statsTitle}>Hoá đơn</h3>
+          <h3 style={styles.statsTitle}>Đơn hàng</h3>
           <p style={styles.statsValue}>{stats.bills}</p>
         </div>
       </div>

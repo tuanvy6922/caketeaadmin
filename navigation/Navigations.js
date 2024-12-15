@@ -18,6 +18,10 @@ import StoreScreen from '../src/screens/StoreScreen';
 import AddStoreScreen from '../src/screens/AddStoreScreen';
 import VoucherScreen from '../src/screens/VoucherScreen';
 import AddVoucherScreen from '../src/screens/AddVoucherScreen';
+import Register from '../src/screens/Register';
+import StaffScreen from '../src/screens/StaffScreen';
+import EditStaffScreen from '../src/screens/EditStaffScreen';
+
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -45,6 +49,8 @@ const DrawerNavigator = () => {
       <Drawer.Screen name="BillsScreen" component={BillsScreen} />
       <Drawer.Screen name="StoreScreen" component={StoreScreen} />
       <Drawer.Screen name="VoucherScreen" component={VoucherScreen} />
+      <Drawer.Screen name="StaffScreen" component={StaffScreen} />
+      <Drawer.Screen name="EditStaffScreen" component={EditStaffScreen} />
     </Drawer.Navigator>
   );
 };
@@ -56,6 +62,11 @@ const Navigation = () => {
       <Stack.Screen 
         name="Login" 
         component={Login} 
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen 
+        name="Register" 
+        component={Register}
         options={{ headerShown: false }}
       />
       <Stack.Screen 
@@ -96,6 +107,16 @@ const Navigation = () => {
       <Stack.Screen 
         name="AddVoucherScreen" 
         component={AddVoucherScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen 
+        name="StaffScreen" 
+        component={StaffScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen 
+        name="EditStaffScreen" 
+        component={EditStaffScreen}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>

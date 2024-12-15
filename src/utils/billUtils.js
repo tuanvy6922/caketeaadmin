@@ -94,10 +94,11 @@ export const exportToExcel = (filteredBills, totalRevenue) => {
     'Email': bill.user,
     'Địa chỉ': bill.address,
     'Ngày đặt': formatDate(bill.date),
-    'Phương thức': bill.paymentMethod,
+    'Phương thức thanh toán': bill.paymentMethod,
+    'Quá trình': bill.deliveryStatus === 'delivered' ? 'Đã giao hàng' : 'Chờ xử lý',
     'Trạng thái': bill.status,
-    'Mã giảm giá': bill.voucherCode || 'Không có',
-    'Giảm giá': bill.voucherDiscount || 0,
+    'Nhân viên duyệt': bill.updatedBy || 'Chưa có',
+    'Thời gian duyệt': bill.updatedAt ? formatDate(bill.updatedAt) : 'Chưa có',
     'Tổng tiền': bill.totalAmount
   }));
 
@@ -112,10 +113,13 @@ export const exportToExcel = (filteredBills, totalRevenue) => {
       'Mã đơn hàng': bill.id,
       'Khách hàng': bill.fullName,
       'Email': bill.user,
-      'Ngày đặt': formatDate(bill.date)
+      'Ngày đặt': formatDate(bill.date),
+      'Phương thức thanh toán': bill.paymentMethod,
+      'Quá trình': bill.deliveryStatus === 'delivered' ? 'Đã giao hàng' : 'Chờ xử lý',
+      'Trạng thái': bill.status
     });
 
-    let subTotal = 0; // Biến tạm để tính tổng cho mỗi đơn hàng
+    let subTotal = 0;
 
     // Chi tiết từng sản phẩm
     bill.items.forEach((item, idx) => {
@@ -145,18 +149,23 @@ export const exportToExcel = (filteredBills, totalRevenue) => {
   const orderDetailsSheet = XLSX.utils.json_to_sheet(orderDetailsData);
   XLSX.utils.book_append_sheet(workbook, orderDetailsSheet, 'Chi tiết sản phẩm');
 
-  // Sheet 3: Thống kê doanh thu
+  // Sheet 3: Thống kê doanh thu và tình trạng giao hàng
   const revenueData = [
-    ['Doanh thu'],
-    ['Hôm nay:', `${totalRevenue.today}đ`],
-    ['7 ngày qua:', `${totalRevenue.week}đ`],
-    ['30 ngày qua:', `${totalRevenue.month}đ`],
-    ['Tổng doanh thu:', `${totalRevenue.total}đ`]
+    ['Thống kê doanh thu'],
+    ['Hôm nay:', `${totalRevenue.today.toLocaleString('vi-VN')}đ`],
+    ['7 ngày qua:', `${totalRevenue.week.toLocaleString('vi-VN')}đ`],
+    ['30 ngày qua:', `${totalRevenue.month.toLocaleString('vi-VN')}đ`],
+    ['Tổng doanh thu:', `${totalRevenue.total.toLocaleString('vi-VN')}đ`],
+    [''],
+    ['Thống kê tình trạng giao hàng'],
+    ['Chờ xử lý:', filteredBills.filter(bill => bill.deliveryStatus === 'pending').length],
+    ['Đã giao hàng:', filteredBills.filter(bill => bill.deliveryStatus === 'delivered').length],
+    ['Tổng số đơn hàng:', filteredBills.length]
   ];
 
   const revenueSheet = XLSX.utils.aoa_to_sheet(revenueData);
   XLSX.utils.book_append_sheet(workbook, revenueSheet, 'Thống kê doanh thu');
 
-  // Xuất file với tên mới
+  // Xuất file
   XLSX.writeFile(workbook, fileName);
 }; 

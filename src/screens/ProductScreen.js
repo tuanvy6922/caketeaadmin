@@ -6,6 +6,88 @@ import { useFocusEffect } from '@react-navigation/native';
 import Header from '../components/Header';
 import { FiEdit2, FiTrash2 } from 'react-icons/fi';
 
+const Pagination = ({ currentPage, totalPages, onPageChange }) => {
+  const getPageNumbers = () => {
+    const delta = 1; // Số trang hiển thị ở mỗi bên của trang hiện tại
+    const range = [];
+    const rangeWithDots = [];
+
+    // Luôn hiển thị trang đầu
+    range.push(1);
+
+    for (let i = currentPage - delta; i <= currentPage + delta; i++) {
+      if (i > 1 && i < totalPages) {
+        range.push(i);
+      }
+    }
+
+    // Luôn hiển thị trang cuối nếu không phải trang 1
+    if (totalPages > 1) {
+      range.push(totalPages);
+    }
+
+    let prev;
+    for (const i of range) {
+      if (prev) {
+        if (i - prev === 2) {
+          // Nếu khoảng cách giữa 2 số là 2, thêm số ở giữa
+          rangeWithDots.push(prev + 1);
+        } else if (i - prev !== 1) {
+          // Nếu có khoảng cách, thêm dấu ...
+          rangeWithDots.push('...');
+        }
+      }
+      rangeWithDots.push(i);
+      prev = i;
+    }
+
+    return rangeWithDots;
+  };
+
+  return (
+    <div style={styles.pagination}>
+      <button 
+        onClick={() => onPageChange(currentPage - 1)}
+        disabled={currentPage === 1}
+        style={{
+          ...styles.pageButton,
+          cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+          opacity: currentPage === 1 ? 0.5 : 1
+        }}
+      >
+        Trước
+      </button>
+
+      {getPageNumbers().map((pageNumber, index) => (
+        <button
+          key={index}
+          onClick={() => pageNumber !== '...' ? onPageChange(pageNumber) : null}
+          style={{
+            ...styles.pageButton,
+            backgroundColor: currentPage === pageNumber ? '#28a745' : '#fff',
+            color: currentPage === pageNumber ? '#fff' : '#000',
+            cursor: pageNumber === '...' ? 'default' : 'pointer'
+          }}
+        >
+          {pageNumber}
+        </button>
+      ))}
+
+      <button 
+        onClick={() => onPageChange(currentPage + 1)}
+        disabled={currentPage === totalPages}
+        style={{
+          ...styles.pageButton,
+          cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+          opacity: currentPage === totalPages ? 0.5 : 1
+        }}
+      >
+        Sau
+      </button>
+    </div>
+  );
+};
+
 const ProductScreen = ({ navigation }) => {
   const [products, setProducts] = useState([]);
   const [message, setMessage] = useState({ text: '', type: '' });
@@ -228,44 +310,11 @@ const ProductScreen = ({ navigation }) => {
             ))}
           </div>
           
-          {/* Thêm phần pagination */}
-          <div style={styles.pagination}>
-            <button 
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              style={{
-                ...styles.pageButton,
-                opacity: currentPage === 1 ? 0.5 : 1
-              }}
-            >
-              Trước
-            </button>
-            
-            {[...Array(totalPages)].map((_, index) => (
-              <button
-                key={index + 1}
-                onClick={() => handlePageChange(index + 1)}
-                style={{
-                  ...styles.pageButton,
-                  backgroundColor: currentPage === index + 1 ? '#4CAF50' : '#fff',
-                  color: currentPage === index + 1 ? '#fff' : '#333'
-                }}
-              >
-                {index + 1}
-              </button>
-            ))}
-            
-            <button 
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              style={{
-                ...styles.pageButton,
-                opacity: currentPage === totalPages ? 0.5 : 1
-              }}
-            >
-              Sau
-            </button>
-          </div>
+          <Pagination 
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
         </div>
       </div>
     </div>
@@ -442,25 +491,22 @@ const styles = {
     justifyContent: 'center',
     alignItems: 'center',
     gap: '8px',
-    padding: '16px 0',
-    marginTop: '16px',
-    borderTop: '1px solid #eee',
+    marginTop: '20px',
   },
   pageButton: {
     padding: '6px 12px',
-    border: '1px solid #ddd',
+    border: '1px solid #dee2e6',
     borderRadius: '4px',
     backgroundColor: '#fff',
     cursor: 'pointer',
-    fontSize: '13px',
+    minWidth: '40px',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
     transition: 'all 0.2s',
-    ':hover': {
-      backgroundColor: '#f8f9fa',
+    '&:hover': {
+      backgroundColor: '#e9ecef',
     },
-    ':disabled': {
-      cursor: 'not-allowed',
-      opacity: 0.5,
-    }
   },
   buttonIcon: {
     fontSize: '14px',

@@ -4,15 +4,18 @@ import { FiDownload } from 'react-icons/fi';
 const BillFilters = ({ 
   searchQuery, 
   statusFilter, 
+  staffFilter,
   dateFilter,
   startDate,
   endDate,
   handleSearch, 
   handleStatusFilter, 
+  handleStaffFilter,
   handleDateFilter,
   handleDateRangeFilter,
   exportToExcel,
-  statusOptions 
+  statusOptions,
+  staffList
 }) => {
   return (
     <div style={styles.filterSection}>
@@ -29,6 +32,19 @@ const BillFilters = ({
       </div>
       
       <div style={styles.rightControls}>
+        <select 
+          value={staffFilter} 
+          onChange={(e) => handleStaffFilter(e.target.value)} 
+          style={styles.filterSelect}
+        >
+          <option value="all">Tất cả nhân viên</option>
+          {staffList.map((staff) => (
+            <option key={staff.email} value={staff.email}>
+              {staff.fullName}
+            </option>
+          ))}
+        </select>
+
         <div style={styles.dateRangeContainer}>
           <input
             type="date"

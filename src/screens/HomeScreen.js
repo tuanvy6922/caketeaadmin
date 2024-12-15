@@ -187,7 +187,7 @@ const HomeScreen = () => {
       try {
         const user = auth.currentUser;
         if (user) {
-          const userDoc = await getDoc(doc(db, 'USERS', user.email));
+          const userDoc = await getDoc(doc(db, 'Staff', user.email));
           if (userDoc.exists()) {
             setAdminInfo(userDoc.data());
           }

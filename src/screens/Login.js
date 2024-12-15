@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { auth, db } from '../connect/firebaseConfig'
 import { signInWithEmailAndPassword } from 'firebase/auth'
-import { doc, getDoc } from 'firebase/firestore'
+import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore'
 import { useNavigation } from '@react-navigation/native'
 import { FiEye, FiEyeOff } from 'react-icons/fi'
 import backgroundImage from '../../assets/backgroundCake-Tea.png';
@@ -18,11 +18,16 @@ const Login = () => {
     setErrorMessage('');
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password)
-      const userDoc = await getDoc(doc(db, "USERS", email))
+      const userDoc = await getDoc(doc(db, "Staff", email))
       console.log(userDoc.data());
       if (userDoc.exists()) {
         const userData = userDoc.data();
-        if (userData.role === "Admin") {
+        if (userData.role === "Admin" || userData.role === "Staff") {
+          await updateDoc(doc(db, "Staff", email), {
+            startActivityTime: serverTimestamp(),
+            endActivityTime: null,
+            isCurrentlyActive: true
+          });
           navigation.replace('MainApp');
         } else {
           setErrorMessage("Bạn không có quyền truy cập!");
@@ -71,6 +76,16 @@ const Login = () => {
         <button style={styles.button} onClick={handleLogin}>
           <span style={styles.buttonText}>Đăng nhập</span>
         </button>
+
+        <div style={styles.registerLink}>
+          <span>Chưa có tài khoản? </span>
+          <button 
+            style={styles.linkButton}
+            onClick={() => navigation.navigate('Register')}
+          >
+            Đăng ký
+          </button>
+        </div>
       </div>
     </div>
   )
@@ -192,5 +207,19 @@ const styles = {
     height: 'auto',
     display: 'block',
     margin: '0 auto 20px',
+  },
+  registerLink: {
+    marginTop: '20px',
+    textAlign: 'center',
+    fontSize: '14px',
+  },
+  linkButton: {
+    background: 'none',
+    border: 'none',
+    color: '#4a90e2',
+    cursor: 'pointer',
+    padding: '0',
+    fontSize: '14px',
+    textDecoration: 'underline',
   },
 }

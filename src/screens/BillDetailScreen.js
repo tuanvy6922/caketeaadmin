@@ -103,13 +103,27 @@ const BillDetailScreen = ({ navigation, route }) => {
               </div>
             </div>
             <div style={styles.infoRow}>
-              <div style={styles.paymentField}>
-                <span style={styles.paymentLabel}>Phương thức thanh toán:</span>
+              <div style={styles.infoField}>
+                <span style={styles.label}>Thanh toán:</span>
                 <span style={styles.valueClose}>{bill.paymentMethod}</span>
               </div>
               <div style={styles.infoField}>
-                <span style={styles.label}>Trạng thái:</span>
-                <span style={styles.valueClose}>{getStatusLabel(bill.status)}</span>
+                <span style={styles.label}>Quá trình:</span>
+                <span style={styles.valueClose}>
+                  {bill.deliveryStatus === 'delivered' ? 'Đã giao hàng' : 'Chờ xử lý'}
+                </span>
+              </div>
+            </div>
+            <div style={styles.infoRow}>
+              <div style={styles.infoField}>
+                <span style={styles.label1}>Nhân viên duyệt:</span>
+                <span style={styles.valueClose}>{bill.updatedBy || 'Chưa có'}</span>
+              </div>
+              <div style={styles.infoField}>
+                <span style={styles.label1}>Thời gian duyệt:</span>
+                <span style={styles.valueClose}>
+                  {bill.updatedAt ? formatDate(bill.updatedAt) : 'Chưa có'}
+                </span>
               </div>
             </div>
           </div>
@@ -224,6 +238,12 @@ const styles = {
     color: '#666',
     fontWeight: '500',
     width: '80px',
+    marginRight: '0px',
+  },
+  label1: {
+    color: '#666',
+    fontWeight: '500',
+    width: '120px',
     marginRight: '0px',
   },
   value: {
