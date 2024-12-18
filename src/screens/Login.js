@@ -17,21 +17,32 @@ const Login = () => {
   const handleLogin = async () => {
     setErrorMessage('');
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password)
-      const userDoc = await getDoc(doc(db, "Staff", email))
-      console.log(userDoc.data());
+      const userDoc = await getDoc(doc(db, "Staff", email));
+      
       if (userDoc.exists()) {
         const userData = userDoc.data();
-        if (userData.role === "Admin" || userData.role === "Staff") {
-          await updateDoc(doc(db, "Staff", email), {
-            startActivityTime: serverTimestamp(),
-            endActivityTime: null,
-            isCurrentlyActive: true
-          });
-          navigation.replace('MainApp');
-        } else {
-          setErrorMessage("Bạn không có quyền truy cập!");
+        
+        if (userData.state === 'Inactive') {
+          setErrorMessage("Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ quản trị!");
+          return;
         }
+
+        if (userData.role !== "Admin" && userData.role !== "Staff") {
+          setErrorMessage("Bạn không có quyền truy cập!");
+          return;
+        }
+
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        
+        await updateDoc(doc(db, "Staff", email), {
+          startActivityTime: serverTimestamp(),
+          endActivityTime: null,
+          isCurrentlyActive: true
+        });
+        
+        navigation.replace('MainApp');
+      } else {
+        setErrorMessage("Tài khoản không tồn tại!");
       }
     } catch (error) {
       console.error('Lỗi đăng nhập:', error);
@@ -42,7 +53,7 @@ const Login = () => {
   return (
     <div style={styles.container} className="container">
       <div style={styles.loginBox}>
-        <h1 style={styles.title}>Đăng nhập Admin</h1>
+        <h1 style={styles.title}>Sugar Cake & Tea</h1>
         <div style={styles.inputGroup}>
           <div style={styles.inputContainer}>
             <input

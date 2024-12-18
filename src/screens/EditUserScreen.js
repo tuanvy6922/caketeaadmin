@@ -84,7 +84,7 @@ const EditUserScreen = ({ navigation, route }) => {
                 style={styles.select}
               >
                 <option value="user">User</option>
-                <option value="admin">Admin</option>
+                
               </select>
             </div>
 

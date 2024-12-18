@@ -3,7 +3,7 @@ import { auth, db } from '../connect/firebaseConfig';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { useNavigation } from '@react-navigation/native';
-import { FiEye, FiEyeOff } from 'react-icons/fi';
+import { FiEye, FiEyeOff, FiArrowLeft } from 'react-icons/fi';
 import Swal from 'sweetalert2';
 
 const Register = () => {
@@ -20,7 +20,17 @@ const Register = () => {
     userCode: '',
     startActivityTime: null,
     endActivityTime: null,
-    isCurrentlyActive: false
+    isCurrentlyActive: false,
+    permissions: {
+      orders: false,
+      products: false,
+      customers: false,
+      vouchers: false,
+      sliders: false,
+      categories: false,
+      staff: false,
+      store: false
+    }
   });
   const [showPassword, setShowPassword] = useState(false);
 
@@ -59,6 +69,27 @@ const Register = () => {
         formData.password
       );
 
+      // Xác định permissions dựa trên role
+      const permissions = formData.role === 'Admin' ? {
+        orders: true,
+        products: true,
+        customers: true,
+        vouchers: true,
+        sliders: true,
+        categories: true,
+        staff: true,
+        store: true
+      } : {
+        orders: false,
+        products: false,
+        customers: false,
+        vouchers: false,
+        sliders: false,
+        categories: false,
+        staff: false,
+        store: false
+      };
+
       // Tạo document trong collection Staff với email đã chuẩn hóa và thêm các trường thời gian
       await setDoc(doc(db, "Staff", normalizedEmail), {
         ...formData,
@@ -66,7 +97,8 @@ const Register = () => {
         userCode: `${formData.role === 'Admin' ? 'ADM' : 'STF'}${Date.now()}`,
         startActivityTime: null,
         endActivityTime: null,
-        isCurrentlyActive: false
+        isCurrentlyActive: false,
+        permissions: permissions
       });
 
       Swal.fire({
@@ -91,6 +123,12 @@ const Register = () => {
   return (
     <div style={styles.container}>
       <div style={styles.registerBox}>
+        <button 
+          onClick={() => navigation.navigate('Login')} 
+          style={styles.backButton}
+        >
+          <FiArrowLeft size={24} />
+        </button>
         <h1 style={styles.title}>Đăng ký tài khoản</h1>
         
         <div style={styles.inputGroup}>
@@ -171,7 +209,6 @@ const Register = () => {
             <option value="">Chọn giới tính</option>
             <option value="Nam">Nam</option>
             <option value="Nữ">Nữ</option>
-            <option value="Khác">Khác</option>
           </select>
         </div>
 
@@ -184,7 +221,6 @@ const Register = () => {
             required
           >
             <option value="">Chọn vai trò *</option>
-            <option value="Admin">Admin</option>
             <option value="Staff">Staff</option>
           </select>
         </div>
@@ -207,6 +243,7 @@ const styles = {
     backgroundColor: '#f5f5f5',
   },
   registerBox: {
+    position: 'relative',
     width: '100%',
     maxWidth: '500px',
     padding: '40px',
@@ -267,6 +304,24 @@ const styles = {
     color: 'white',
     fontSize: '16px',
     fontWeight: '500',
+  },
+  backButton: {
+    position: 'absolute',
+    top: '20px',
+    left: '20px',
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    color: '#333',
+    padding: '8px',
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: 'background-color 0.2s',
+    ':hover': {
+      backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    }
   },
 };
 

@@ -17,6 +17,16 @@ const EditStaffScreen = ({ route }) => {
     role: '',
     state: ''
   });
+  const [permissions, setPermissions] = useState({
+    orders: false,
+    products: false,
+    customers: false,
+    vouchers: false,
+    sliders: false,
+    categories: false,
+    staff: false,
+    store: false
+  });
 
   useEffect(() => {
     if (staff) {
@@ -28,6 +38,16 @@ const EditStaffScreen = ({ route }) => {
         gender: staff.gender || '',
         role: staff.role || '',
         state: staff.state || ''
+      });
+      setPermissions(staff.permissions || {
+        orders: false,
+        products: false,
+        customers: false,
+        vouchers: false,
+        sliders: false,
+        categories: false,
+        staff: false,
+        store: false
       });
     }
   }, [staff]);
@@ -49,7 +69,8 @@ const EditStaffScreen = ({ route }) => {
         address: formData.address,
         gender: formData.gender,
         role: formData.role,
-        state: formData.state
+        state: formData.state,
+        permissions: permissions
       });
 
       Swal.fire({
@@ -58,9 +79,10 @@ const EditStaffScreen = ({ route }) => {
         text: 'Cập nhật thông tin nhân viên thành công!',
         showConfirmButton: false,
         timer: 1500
+      }).then(() => {
+        navigation.navigate('StaffScreen');
       });
 
-      navigation.goBack();
     } catch (error) {
       console.error('Lỗi cập nhật:', error);
       Swal.fire({
@@ -70,6 +92,86 @@ const EditStaffScreen = ({ route }) => {
       });
     }
   };
+
+  const renderPermissionsSection = () => (
+    <div style={styles.permissionsSection}>
+      <h3 style={styles.permissionsTitle}>Phân quyền truy cập:</h3>
+      <div style={styles.permissionsGrid}>
+        <div style={styles.permissionItem}>
+          <input
+            type="checkbox"
+            id="orders"
+            checked={permissions.orders}
+            onChange={(e) => setPermissions({...permissions, orders: e.target.checked})}
+          />
+          <label htmlFor="orders">Đơn hàng</label>
+        </div>
+        <div style={styles.permissionItem}>
+          <input
+            type="checkbox"
+            id="products"
+            checked={permissions.products}
+            onChange={(e) => setPermissions({...permissions, products: e.target.checked})}
+          />
+          <label htmlFor="products">Sản phẩm</label>
+        </div>
+        <div style={styles.permissionItem}>
+          <input
+            type="checkbox"
+            id="customers"
+            checked={permissions.customers}
+            onChange={(e) => setPermissions({...permissions, customers: e.target.checked})}
+          />
+          <label htmlFor="customers">Khách hàng</label>
+        </div>
+        <div style={styles.permissionItem}>
+          <input
+            type="checkbox"
+            id="vouchers"
+            checked={permissions.vouchers}
+            onChange={(e) => setPermissions({...permissions, vouchers: e.target.checked})}
+          />
+          <label htmlFor="vouchers">Mã giảm giá</label>
+        </div>
+        <div style={styles.permissionItem}>
+          <input
+            type="checkbox"
+            id="sliders"
+            checked={permissions.sliders}
+            onChange={(e) => setPermissions({...permissions, sliders: e.target.checked})}
+          />
+          <label htmlFor="sliders">Quảng cáo Slider</label>
+        </div>
+        <div style={styles.permissionItem}>
+          <input
+            type="checkbox"
+            id="categories"
+            checked={permissions.categories}
+            onChange={(e) => setPermissions({...permissions, categories: e.target.checked})}
+          />
+          <label htmlFor="categories">Danh mục</label>
+        </div>
+        <div style={styles.permissionItem}>
+          <input
+            type="checkbox"
+            id="staff"
+            checked={permissions.staff}
+            onChange={(e) => setPermissions({...permissions, staff: e.target.checked})}
+          />
+          <label htmlFor="staff">Nhân viên</label>
+        </div>
+        <div style={styles.permissionItem}>
+          <input
+            type="checkbox"
+            id="store"
+            checked={permissions.store}
+            onChange={(e) => setPermissions({...permissions, store: e.target.checked})}
+          />
+          <label htmlFor="store">Thông tin cửa hàng</label>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div style={styles.container}>
@@ -160,6 +262,8 @@ const EditStaffScreen = ({ route }) => {
               <option value="Inactive">Không hoạt động</option>
             </select>
           </div>
+
+          {formData.role === 'Staff' && renderPermissionsSection()}
 
           <div style={styles.buttonGroup}>
             <button type="submit" style={styles.submitButton}>
@@ -263,7 +367,29 @@ const styles = {
     borderRadius: '4px',
     cursor: 'pointer',
     fontSize: '14px',
-  }
+  },
+  permissionsSection: {
+    marginTop: '20px',
+    padding: '20px',
+    border: '1px solid #ddd',
+    borderRadius: '4px',
+  },
+  permissionsTitle: {
+    fontSize: '16px',
+    fontWeight: '500',
+    marginBottom: '15px',
+    color: '#333',
+  },
+  permissionsGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+    gap: '15px',
+  },
+  permissionItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+  },
 };
 
 export default EditStaffScreen;

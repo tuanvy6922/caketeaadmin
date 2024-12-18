@@ -128,6 +128,20 @@ const BillDetailScreen = ({ navigation, route }) => {
             </div>
           </div>
 
+          <h2 style={styles.sectionTitle}>Thông tin cửa hàng</h2>
+          <div style={styles.storeInfo}>
+            <div style={styles.infoRow}>
+              <div style={styles.infoField}>
+                <span style={styles.label2}>Tên cửa hàng:</span>
+                <span style={styles.valueClose}>{bill.store?.name || 'Không có'}</span>
+              </div>
+              <div style={styles.infoField}>
+                <span style={styles.label}>Địa chỉ:</span>
+                <span style={styles.valueClose}>{bill.store?.address || 'Không có'}</span>
+              </div>
+            </div>
+          </div>
+
           <h2 style={styles.sectionTitle}>Danh sách sản phẩm</h2>
           <table style={styles.table}>
             <thead>
@@ -246,6 +260,12 @@ const styles = {
     width: '120px',
     marginRight: '0px',
   },
+  label2: {
+    color: '#666',
+    fontWeight: '500',
+    width: '100px',
+    marginRight: '0px',
+  },
   value: {
     flex: 1,
   },
@@ -335,7 +355,10 @@ const styles = {
   },
   valueClose: {
     marginLeft: '4px',
-  }
+  },
+  storeInfo: {
+    marginBottom: '20px',
+  },
 };
 
 export default BillDetailScreen;

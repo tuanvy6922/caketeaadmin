@@ -71,7 +71,7 @@ const CategoryScreen = ({ navigation }) => {
       <Header />
       <div style={styles.content}>
         <div style={styles.headerSection}>
-          <h1 style={styles.title}>Quản lý Danh mục</h1>
+          <h1 style={styles.title}>Quản lý Thể loại</h1>
           <button onClick={() => navigation.navigate('AddCategoryScreen')} style={styles.addButton}>+ Thêm Danh mục</button>
         </div>
         {message.text && (

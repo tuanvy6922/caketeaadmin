@@ -13,7 +13,7 @@ const StaffScreen = ({ navigation }) => {
   const [searchResults, setSearchResults] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
-  const staffsPerPage = 10;
+  const staffsPerPage = 6;
   const indexOfLastStaff = currentPage * staffsPerPage;
   const indexOfFirstStaff = indexOfLastStaff - staffsPerPage;
   const totalPages = Math.ceil(staffs.length / staffsPerPage);

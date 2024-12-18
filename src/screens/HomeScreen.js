@@ -217,7 +217,7 @@ const HomeScreen = () => {
     const fetchStats = async () => {
       try {
         const billsSnapshot = await getCountFromServer(collection(db, 'Bills'));
-        const usersSnapshot = await getCountFromServer(collection(db, 'USERS'));
+        const usersSnapshot = await getCountFromServer(collection(db, 'Customer'));
         const productsSnapshot = await getCountFromServer(collection(db, 'Product'));
         const categoriesSnapshot = await getCountFromServer(collection(db, 'Category'));
 

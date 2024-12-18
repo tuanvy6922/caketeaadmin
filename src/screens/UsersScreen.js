@@ -9,7 +9,7 @@ const UsersScreen = ({ navigation }) => {
   const [users, setUsers] = useState([]);
   const [message, setMessage] = useState({ text: '', type: '' });
   const [currentPage, setCurrentPage] = useState(1);
-  const usersPerPage = 10;
+  const usersPerPage = 6;
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);

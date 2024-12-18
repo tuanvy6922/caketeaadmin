@@ -19,7 +19,7 @@ const StatsCards = ({ stats }) => {
           <FiUsers style={{...styles.statsIcon, color: '#2196F3'}} />
         </div>
         <div style={styles.statsInfo}>
-          <h3 style={styles.statsTitle}>Người dùng</h3>
+          <h3 style={styles.statsTitle}>Khách hàng</h3>
           <p style={styles.statsValue}>{stats.users}</p>
         </div>
       </div>
@@ -39,7 +39,7 @@ const StatsCards = ({ stats }) => {
           <FiGrid style={{...styles.statsIcon, color: '#9C27B0'}} />
         </div>
         <div style={styles.statsInfo}>
-          <h3 style={styles.statsTitle}>Danh mục</h3>
+          <h3 style={styles.statsTitle}>Thể loại</h3>
           <p style={styles.statsValue}>{stats.categories}</p>
         </div>
       </div>

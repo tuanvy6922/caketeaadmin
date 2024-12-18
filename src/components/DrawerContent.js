@@ -6,55 +6,53 @@ import Swal from 'sweetalert2'; // Import SweetAlert2
 import { doc, updateDoc, serverTimestamp, getDoc } from 'firebase/firestore'; // Thêm các import cần thiết
 
 const DrawerContent = (props) => {
-  const { navigation, adminInfo } = props;
+  const { navigation } = props;
   const [userRole, setUserRole] = useState(null);
+  const [userPermissions, setUserPermissions] = useState(null);
+  const [adminInfo, setAdminInfo] = useState(null);
 
-  // Thêm useEffect để kiểm tra role
   useEffect(() => {
-    const checkUserRole = async () => {
+    const checkUserPermissions = async () => {
       try {
         const user = auth.currentUser;
         if (user) {
           const docRef = doc(db, "Staff", user.email);
           const docSnap = await getDoc(docRef);
           if (docSnap.exists()) {
-            setUserRole(docSnap.data().role);
-            console.log("Fetched role:", docSnap.data().role);
+            const userData = docSnap.data();
+            setUserRole(userData.role);
+            setUserPermissions(userData.permissions || {});
+            setAdminInfo(userData);
+            console.log("Fetched permissions:", userData.permissions);
           }
         }
       } catch (error) {
-        console.error("Error fetching role:", error);
+        console.error("Error fetching permissions:", error);
       }
     };
 
-    checkUserRole();
+    checkUserPermissions();
   }, []);
 
-  // Menu items cho admin
-  const adminMenuItems = [
-    { icon: <FiHome size={24} />, text: 'Trang chủ', route: 'Home' },
-    { icon: <FiFileText size={24} />, text: 'Đơn hàng', route: 'BillsScreen' },
-    { icon: <FiBox size={24} />, text: 'Sản phẩm', route: 'ProductScreen' },
-    { icon: <FiUsers size={24} />, text: 'Tài khoản khách hàng', route: 'UsersScreen' },
-    { icon: <FiTag size={24} />, text: 'Mã giảm giá', route: 'VoucherScreen' },
-    { icon: <FiUsers size={24} />, text: 'Nhân viên', route: 'StaffScreen' },
-    { icon: <FiImage size={24} />, text: 'Quảng cáo Slider', route: 'SlidersScreen' },
-    { icon: <FiGrid size={24} />, text: 'Danh mục thể loại', route: 'CategoryScreen' },
-    { icon: <FiHome size={24} />, text: 'Thông tin cửa hàng', route: 'StoreScreen' },
+  // Menu items chung cho cả Admin và Staff
+  const allMenuItems = [
+    { icon: <FiHome size={24} />, text: 'Trang chủ', route: 'Home', permission: null },
+    { icon: <FiFileText size={24} />, text: 'Đơn hàng', route: 'BillsScreen', permission: 'orders' },
+    { icon: <FiBox size={24} />, text: 'Sản phẩm', route: 'ProductScreen', permission: 'products' },
+    { icon: <FiUsers size={24} />, text: 'Tài khoản khách hàng', route: 'UsersScreen', permission: 'customers' },
+    { icon: <FiTag size={24} />, text: 'Mã giảm giá', route: 'VoucherScreen', permission: 'vouchers' },
+    { icon: <FiUsers size={24} />, text: 'Nhân viên', route: 'StaffScreen', permission: 'staff' },
+    { icon: <FiImage size={24} />, text: 'Quảng cáo Slider', route: 'SlidersScreen', permission: 'sliders' },
+    { icon: <FiGrid size={24} />, text: 'Danh mục thể loại', route: 'CategoryScreen', permission: 'categories' },
+    { icon: <FiHome size={24} />, text: 'Thông tin cửa hàng', route: 'StoreScreen', permission: 'store' },
   ];
 
-  // Menu items cho staff
-  const staffMenuItems = [
-    { icon: <FiHome size={24} />, text: 'Trang chủ', route: 'Home' },
-    { icon: <FiFileText size={24} />, text: 'Đơn hàng', route: 'BillsScreen' },
-    { icon: <FiBox size={24} />, text: 'Sản phẩm', route: 'ProductScreen' },
-    { icon: <FiUsers size={24} />, text: 'Tài khoản khách hàng', route: 'UsersScreen' },
-  ];
-
-  // Sửa logic chọn menu items để sử dụng cả adminInfo và userRole
-  const menuItems = (adminInfo?.role === 'Admin' || userRole === 'Admin') 
-    ? adminMenuItems 
-    : staffMenuItems;
+  // Kiểm tra quyền truy cập cho từng menu item
+  const canAccess = (permission) => {
+    if (!permission) return true; // Cho phép truy cập các route không cần quyền (như Home)
+    if (userRole === 'Admin') return true; // Admin có tất cả quyền
+    return userPermissions?.[permission] === true; // Kiểm tra quyền cụ thể của Staff
+  };
 
   const handleLogout = async () => {
     const result = await Swal.fire({
@@ -108,20 +106,29 @@ const DrawerContent = (props) => {
   return (
     <div style={styles.drawerContainer}>
       {adminInfo && (
-        <>
-          <div style={styles.drawerHeader}>
-            <FiUser size={50} />
-            <span style={styles.adminText}>{adminInfo.fullName}</span>
-            <span style={styles.adminEmail}>{adminInfo.email}</span>
-          </div>
-        </>
+        <div style={styles.drawerHeader}>
+          <FiUser size={50} />
+          <span style={styles.adminText}>{adminInfo.fullName}</span>
+          <span style={styles.adminEmail}>{adminInfo.email}</span>
+          <span style={styles.adminRole}>{adminInfo.role}</span>
+        </div>
       )}
       
-      {menuItems.map((item, index) => (
+      {allMenuItems.map((item, index) => (
         <button 
           key={index}
-          style={styles.drawerItem}
-          onClick={() => navigation.navigate(item.route)}
+          style={{
+            ...styles.drawerItem,
+            opacity: canAccess(item.permission) ? 1 : 0.5,
+            cursor: canAccess(item.permission) ? 'pointer' : 'not-allowed'
+          }}
+          onClick={() => {
+            if (canAccess(item.permission)) {
+              navigation.navigate(item.route);
+            } else {
+              alert('Bạn không có quyền truy cập chức năng này!');
+            }
+          }}
         >
           {item.icon}
           <span style={styles.drawerItemText}>{item.text}</span>
@@ -178,6 +185,7 @@ const styles = {
     '&:hover': {
       backgroundColor: '#f5f5f5',
     },
+    transition: 'opacity 0.3s ease',
   },
   drawerItemText: {
     fontSize: '16px',
